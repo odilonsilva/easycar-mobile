@@ -1,20 +1,45 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import Passenger from "./src/screens/Passenger/Passenger";
+import Home from "./src/screens/Home/Home";
+import Driver from "./src/screens/Driver/Driver";
+import Details from "./src/screens/Driver/Details";
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen
+          name="Home"
+          component={Home}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Passenger"
+          component={Passenger}
+          options={{
+            title: "",
+            headerTransparent: true,
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="Driver"
+          component={Driver}
+          options={{ title: "Viagens disponiveis", headerStyle: "center" }}
+        />
+        <Stack.Screen
+          name="Details"
+          component={Details}
+          options={{
+            title: "",
+            headerTransparent: true,
+            headerShadowVisible: false,
+          }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
