@@ -8,6 +8,9 @@ export const style = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 10,
     gap: 10,
+    borderRadius: 10,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
   },
   title: {
     fontSize: 16,

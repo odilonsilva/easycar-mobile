@@ -1,58 +1,80 @@
-import { Text, TextInput, ToastAndroid, View } from "react-native";
+import { Alert, Text, TextInput, ToastAndroid, View } from "react-native";
 import { style } from "./details.style";
 import MyButton from "../../components/MyButton";
-import { json_rides } from "../../constants/dados";
 import { useEffect, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
-
 import Loader from "../../components/Loader";
-import { icons } from "../../constants/images";
+import { useNavigation } from "@react-navigation/native";
+import { axiosRequest, errorHandling } from "../../constants/Requests";
 
 export default function Details({ route }) {
-  const driverID = 5;
-  const { rideId } = route.params;
+  const driverId = route.params.driverId;
+  const rideId = route.params.rideId;
   const [ride, setRide] = useState({ status: "" });
+  const [passengerInfo, setPassengerInfo] = useState("");
   const [loading, setLoading] = useState(true);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropOffLocation, setDropOffLocation] = useState(null);
-  const [myLocation, setMyLocation] = useState({
-    title: "",
-    description: "",
-    latitude: 0,
-    longitude: 0,
-    latitudeDelta: 0,
-    longitudeDelta: 0,
-  });
+  const [myLocation, setMyLocation] = useState(null);
+  const navigation = useNavigation();
 
-  function AcceptAction() {
-    ToastAndroid.show("AcceptAction", ToastAndroid.LONG);
+  async function AcceptAction() {
+    try {
+      await axiosRequest.put(`/rides/${rideId}/accept`, {
+        driver_id: driverId,
+      });
+
+      ToastAndroid.show("Corrida aceita", ToastAndroid.LONG);
+      navigation.goBack();
+    } catch (error) {
+      errorHandling(error);
+    }
   }
 
   function CancelAction() {
-    ToastAndroid.show("CancelAction", ToastAndroid.LONG);
-  }
+    Alert.alert(
+      "Cancelar Carona",
+      "Cancelando essa corrida, o Passageiro voltará para fila de viagens disponiveis.",
+      [
+        {
+          text: "Cancelar",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "Enviar",
+          onPress: async () => {
+            ToastAndroid.show(
+              "Carona cancelada com sucesso!",
+              ToastAndroid.LONG
+            );
 
-  function FinishAction() {
-    ToastAndroid.show("FinishAction", ToastAndroid.LONG);
+            await axiosRequest.put(`/rides/${rideId}/cancel`);
+
+            navigation.goBack();
+          },
+        },
+      ]
+    );
   }
 
   async function RequestRide() {
-    const rideResponse = json_rides;
+    const { data: ride } = await axiosRequest.get(`/rides/${rideId}`);
 
-    if (rideResponse) {
-      const ride = rideResponse.find((item) => item.ride_id === rideId);
+    if (ride) {
       setMyLocation({
         title: ride.pickup_address,
         description: ride.passenger_name,
-        latitude: Number(ride.latitude),
-        longitude: Number(ride.longitude),
-        latitudeDelta: 0.004,
-        longitudeDelta: 0.004,
+        latitude: Number(ride.pickup_latitude),
+        longitude: Number(ride.pickup_longitude),
+        latitudeDelta: 0.002,
+        longitudeDelta: 0.002,
       });
-      console.log(myLocation);
+
       setRide(ride);
       setPickupLocation(ride.pickup_address);
       setDropOffLocation(ride.dropoff_address);
+      setPassengerInfo(`${ride.passenger_name} - Tel: ${ride.passenger_phone}`);
     }
 
     setLoading(false);
@@ -84,16 +106,13 @@ export default function Details({ route }) {
           title={myLocation.title}
           description={myLocation.description}
           style={style.marker}
-          icon={icons.location}
+          sh
+          // icon={icons.location}
         />
       </MapView>
 
       <View style={style.formContainer}>
-        <Text style={style.title}>
-          {ride.status == "" && "Encontre sua carona"}
-          {ride.status == "P" && "Aguardando uma carona..."}
-          {ride.status == "A" && "Carona confirmada"}
-        </Text>
+        <Text style={style.title}>{passengerInfo}</Text>
         <View>
           <Text>Origem:</Text>
           <TextInput
@@ -116,32 +135,13 @@ export default function Details({ route }) {
             value={dropOffLocation}
           />
         </View>
-
-        <View>
-          <Text>Passageiro:</Text>
-          <TextInput
-            style={[style.textInput, style.textDisabled]}
-            editable={false}
-            value={ride.passenger_name}
-          />
-        </View>
-        <View>
-          <Text>Telefone:</Text>
-          <TextInput
-            style={[style.textInput, style.textDisabled]}
-            editable={false}
-            value={ride.passenger_phone}
-          />
-        </View>
       </View>
       {ride.status == "P" && (
         <MyButton text="aceitar" action={AcceptAction} color="default" />
       )}
-      {ride.status == "C" && (
-        <MyButton text="finalizar" action={FinishAction} color="red" />
-      )}
+
       {ride.status == "A" && (
-        <MyButton text="Cancelar" action={CancelAction} color="red" />
+        <MyButton text="cancelar" action={CancelAction} color="red" />
       )}
     </View>
   );

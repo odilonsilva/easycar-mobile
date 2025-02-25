@@ -1,62 +1,180 @@
-import { Text, TextInput, ToastAndroid, View } from "react-native";
+import { Alert, Text, TextInput, ToastAndroid, View } from "react-native";
 import { style } from "./passenger.style";
 import MyButton from "../../components/MyButton";
-import { json_ride } from "../../constants/dados";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
-import { icons } from "../../constants/images";
-
 import Loader from "../../components/Loader";
+import {
+  getCurrentPositionAsync,
+  requestForegroundPermissionsAsync,
+  reverseGeocodeAsync,
+} from "expo-location";
+import { useNavigation } from "@react-navigation/native";
+import { UserContext } from "../../contexts/UserContext";
+import { axiosRequest, errorHandling } from "../../constants/Requests";
 
 export default function Passenger() {
   const [ride, setRide] = useState({ status: "" });
-  const [myLocation, setMyLocation] = useState({
-    title: "",
-    description: "",
-    latitude: 0,
-    longitude: 0,
-    latitudeDelta: 0,
-    longitudeDelta: 0,
-  });
+  const [myLocation, setMyLocation] = useState({});
   const [loading, setLoading] = useState(true);
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropOffLocation, setDropOffLocation] = useState(null);
+  const navigation = useNavigation();
+  const { user } = useContext(UserContext);
 
-  function ConfirmAction() {
-    ToastAndroid.show("ConfirmAction", ToastAndroid.LONG);
+  async function ConfirmAction() {
+    try {
+      if (dropOffLocation == null || pickupLocation == null) {
+        Alert.alert("Atenção", "Informe o endereço de origem e destino");
+        return;
+      }
+
+      ToastAndroid.show(
+        "Sua solicição de carona foi enviada! Aguarde um motorista",
+        ToastAndroid.LONG
+      );
+      await axiosRequest.post(`/rides`, {
+        passenger_user_id: user.user_id,
+        pickup_latitude: myLocation.latitude,
+        pickup_longitude: myLocation.longitude,
+        pickup_address: pickupLocation,
+        dropoff_address: dropOffLocation,
+      });
+
+      navigation.goBack();
+    } catch (error) {
+      errorHandling(error);
+    }
   }
 
   function CancelAction() {
-    ToastAndroid.show("CancelAction", ToastAndroid.LONG);
+    Alert.alert(
+      "Cancelar Carona",
+      "Caso você precise de uma nova corrida , basta voltar para fila de caronas.",
+      [
+        {
+          text: "Cancelar",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "Enviar",
+          onPress: async () => {
+            ToastAndroid.show(
+              "Carona cancelada com sucesso!",
+              ToastAndroid.LONG
+            );
+
+            await axiosRequest.delete(`/rides/${ride.ride_id}`);
+
+            navigation.goBack();
+          },
+        },
+      ]
+    );
   }
 
   function FinishAction() {
-    ToastAndroid.show("FinishAction", ToastAndroid.LONG);
+    Alert.alert("Finalizar Carona", "Finalizar essa corrida", [
+      {
+        text: "Cancelar",
+        onPress: () => console.log("Cancel Pressed"),
+        style: "cancel",
+      },
+      {
+        text: "Enviar",
+        onPress: async () => {
+          ToastAndroid.show(
+            "Carona finalizada com sucesso!",
+            ToastAndroid.LONG
+          );
+
+          await axiosRequest.put(`/rides/${ride.ride_id}/finish`);
+          navigation.goBack();
+        },
+      },
+    ]);
   }
 
   async function RequestRide() {
-    const rideResponse = json_ride;
+    try {
+      const pickup_date = new Date().toISOString().split("T")[0];
+      const { data } = await axiosRequest.get("/rides", {
+        params: {
+          passenger_user_id: user.user_id,
+          pickup_date,
+          status_not: "F",
+        },
+      });
+      return data[0] || null;
+    } catch (error) {
+      errorHandling(error);
+    }
+  }
+
+  async function RequestUserLocation() {
+    const granted = await requestForegroundPermissionsAsync();
+    if (granted) {
+      const location = await getCurrentPositionAsync();
+
+      if (!location) return null;
+
+      return {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.003,
+        longitudeDelta: 0.003,
+      };
+    }
+    return null;
+  }
+
+  async function RequestUserAddress(latitude, longitude) {
+    const data = await reverseGeocodeAsync({ latitude, longitude });
+
+    return `${data[0].street}, ${data[0].streetNumber} - ${data[0].district}, ${data[0].subregion}`;
+  }
+
+  async function LoadScreen() {
+    const rideResponse = await RequestRide();
 
     if (rideResponse) {
       setMyLocation({
         title: rideResponse.pickup_address,
         description: rideResponse.passenger_name,
-        latitude: Number(rideResponse.latitude),
-        longitude: Number(rideResponse.longitude),
-        latitudeDelta: 0.004,
-        longitudeDelta: 0.004,
+        latitude: Number(rideResponse.pickup_latitude),
+        longitude: Number(rideResponse.pickup_longitude),
+        latitudeDelta: 0.002,
+        longitudeDelta: 0.002,
       });
 
       setRide(rideResponse);
       setPickupLocation(rideResponse.pickup_address);
       setDropOffLocation(rideResponse.dropoff_address);
+      setLoading(false);
+      return;
     }
 
+    const location = await RequestUserLocation();
+
+    if (location) {
+      setMyLocation(location);
+      const pickupAddress = await RequestUserAddress(
+        location.latitude,
+        location.longitude
+      );
+      setPickupLocation(pickupAddress);
+      setRide({
+        status: "",
+        latitude: location.latitude,
+        longitude: location.longitude,
+      });
+    }
     setLoading(false);
   }
 
   useEffect(() => {
-    RequestRide();
+    LoadScreen();
   }, []);
 
   if (loading) return <Loader />;
@@ -99,6 +217,7 @@ export default function Passenger() {
             ]}
             editable={ride.status == "" ? true : false}
             value={pickupLocation}
+            onChangeText={(value) => setPickupLocation(value)}
           />
         </View>
         <View>
@@ -110,6 +229,7 @@ export default function Passenger() {
             ]}
             editable={ride.status == "" ? true : false}
             value={dropOffLocation}
+            onChangeText={(value) => setDropOffLocation(value)}
           />
         </View>
         {ride && ride.status == "A" && (

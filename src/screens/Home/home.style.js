@@ -26,6 +26,25 @@ export const style = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
   },
+  userContainer: {
+    width: "100%",
+    // backgroundColor: "#000",
+    padding: 10,
+    // flexDirection: "row",
+    // alignItems: "center",
+    // justifyContent: "flex-end",
+  },
+  buttonUser: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  userTitle: {
+    marginLeft: 5,
+    fontSize: 12,
+    color: "#fff",
+    fontWeight: "semibold",
+  },
   text: {
     color: "#fff",
   },
