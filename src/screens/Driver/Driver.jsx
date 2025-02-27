@@ -5,6 +5,14 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { axiosRequest, errorHandling } from "../../constants/Requests";
 import { useCallback, useContext, useState } from "react";
 import { UserContext } from "../../contexts/UserContext";
+import {
+  CarFrontIcon,
+  FolderIcon,
+  HandshakeIcon,
+  LandPlotIcon,
+  MapIcon,
+  PersonStandingIcon,
+} from "lucide-react-native";
 
 export default function Driver() {
   const navigation = useNavigation();
@@ -15,7 +23,6 @@ export default function Driver() {
     try {
       const { data } = await axiosRequest.get(`/rides/drivers/${user.user_id}`);
       setRides(data);
-      console.log(rides.length);
     } catch (error) {
       errorHandling(error);
     }
@@ -29,8 +36,15 @@ export default function Driver() {
 
   if (rides.length == 0)
     return (
-      <View style={style.container}>
-        <Text>Não existem solicitações de caronas.</Text>
+      <View style={style.containerEmpty}>
+        <LandPlotIcon
+          width={style.emptyIcon.width}
+          height={style.emptyIcon.height}
+          style={style.emptyIcon}
+        />
+        <Text style={style.emptyTitle}>
+          Não existem solicitações de caronas.
+        </Text>
       </View>
     );
 

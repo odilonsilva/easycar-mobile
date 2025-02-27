@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { createContext, useCallback, useEffect, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { createContext, useEffect, useState } from "react";
 
 export const UserContext = createContext();
 
@@ -16,7 +16,6 @@ export function UserProvider({ children }) {
       return;
     }
 
-    // console.log(navigation.getState().routes);
     navigation.navigate("Login");
   }
 

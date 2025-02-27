@@ -5,7 +5,7 @@ export const style = StyleSheet.create({
     flex: 1,
   },
   logoContainer: {
-    flex: 2,
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -14,13 +14,13 @@ export const style = StyleSheet.create({
     height: 48,
   },
   form: {
-    flex: 1,
+    flex: 2,
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 10,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    gap: 10,
+    gap: 15,
   },
   label: {
     fontSize: 16,
@@ -39,8 +39,12 @@ export const style = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
-    // color: "#fff",
     fontWeight: "bold",
     textTransform: "uppercase",
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

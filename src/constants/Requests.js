@@ -9,9 +9,17 @@ export const axiosRequest = axios.create({
 });
 
 export function errorHandling(error) {
-  if (error.response) {
+  if (error.response.data.errors) {
+    let errorMessage = "";
+    error.response.data.errors.forEach((item) => {
+      errorMessage += `\n${item.msg}\n`;
+    });
+    alert(errorMessage);
+  } else if (error.response.message) {
     alert(error.response.data.message);
   } else if (error.request) {
-    alert("Ocorreu um erro: Servidor não respondeu");
+    alert("Erro desconhecido");
+  } else {
+    alert(error.response.data.message);
   }
 }

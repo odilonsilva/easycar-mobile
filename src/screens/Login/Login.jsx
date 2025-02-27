@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { style } from "./login.style";
 import { icons } from "../../constants/images";
-import { Link, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { useContext, useState } from "react";
 import { UserContext } from "../../contexts/UserContext";
 import { axiosRequest, errorHandling } from "../../constants/Requests";

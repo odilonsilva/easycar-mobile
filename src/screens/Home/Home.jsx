@@ -8,11 +8,11 @@ import {
 } from "react-native";
 import { icons } from "../../constants/images";
 import { style } from "./home.style";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { View } from "react-native";
 import { UserCircle2Icon } from "lucide-react-native";
 import { UserContext } from "../../contexts/UserContext";
-import { useContext } from "react";
+import { useCallback, useContext } from "react";
 
 export default function Home() {
   const navigation = useNavigation();
@@ -35,6 +35,12 @@ export default function Home() {
       },
     ]);
   }
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) navigation.navigate("Login");
+    }, [])
+  );
 
   return (
     <ImageBackground source={icons.bg} style={style.container}>
