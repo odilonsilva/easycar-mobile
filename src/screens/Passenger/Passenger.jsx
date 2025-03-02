@@ -11,7 +11,7 @@ import {
 } from "expo-location";
 import { useNavigation } from "@react-navigation/native";
 import { UserContext } from "../../contexts/UserContext";
-import { axiosRequest, errorHandling } from "../../constants/Requests";
+import axiosHelper from "../../constants/Requests";
 
 export default function Passenger() {
   const [ride, setRide] = useState({ status: "" });
@@ -33,7 +33,8 @@ export default function Passenger() {
         "Sua solicição de carona foi enviada! Aguarde um motorista",
         ToastAndroid.LONG
       );
-      await axiosRequest.post(`/rides`, {
+      const axiosInstance = await axiosHelper.axiosInstance();
+      await axiosInstance.post("/rides", {
         passenger_user_id: user.user_id,
         pickup_latitude: myLocation.latitude,
         pickup_longitude: myLocation.longitude,
@@ -43,7 +44,7 @@ export default function Passenger() {
 
       navigation.goBack();
     } catch (error) {
-      errorHandling(error);
+      axiosHelper.errorHandling(error, navigation);
     }
   }
 
@@ -65,9 +66,13 @@ export default function Passenger() {
               ToastAndroid.LONG
             );
 
-            await axiosRequest.delete(`/rides/${ride.ride_id}`);
-
-            navigation.goBack();
+            try {
+              const axiosInstance = await axiosHelper.axiosInstance();
+              await axiosInstance.delete(`/rides/${ride.ride_id}`);
+              navigation.goBack();
+            } catch (error) {
+              axiosHelper.errorHandling(error, navigation);
+            }
           },
         },
       ]
@@ -89,8 +94,13 @@ export default function Passenger() {
             ToastAndroid.LONG
           );
 
-          await axiosRequest.put(`/rides/${ride.ride_id}/finish`);
-          navigation.goBack();
+          try {
+            const axiosInstance = await axiosHelper.axiosInstance();
+            await axiosInstance.put(`/rides/${ride.ride_id}/finish`);
+            navigation.goBack();
+          } catch (error) {
+            axiosHelper.errorHandling(error, navigation);
+          }
         },
       },
     ]);
@@ -99,7 +109,8 @@ export default function Passenger() {
   async function RequestRide() {
     try {
       const pickup_date = new Date().toISOString().split("T")[0];
-      const { data } = await axiosRequest.get("/rides", {
+      const axiosInstance = await axiosHelper.axiosInstance();
+      const { data } = await axiosInstance.get("/rides", {
         params: {
           passenger_user_id: user.user_id,
           pickup_date,
@@ -108,7 +119,7 @@ export default function Passenger() {
       });
       return data[0] || null;
     } catch (error) {
-      errorHandling(error);
+      axiosHelper.errorHandling(error, navigation);
     }
   }
 

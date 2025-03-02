@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
 import Loader from "../../components/Loader";
 import { useNavigation } from "@react-navigation/native";
-import { axiosRequest, errorHandling } from "../../constants/Requests";
+import axiosHelper from "../../constants/Requests";
 
 export default function Details({ route }) {
   const driverId = route.params.driverId;
@@ -20,14 +20,15 @@ export default function Details({ route }) {
 
   async function AcceptAction() {
     try {
-      await axiosRequest.put(`/rides/${rideId}/accept`, {
+      const axiosInstance = await axiosHelper.axiosInstance();
+      await axiosInstance.put(`/rides/${rideId}/accept`, {
         driver_id: driverId,
       });
 
       ToastAndroid.show("Corrida aceita", ToastAndroid.LONG);
       navigation.goBack();
     } catch (error) {
-      errorHandling(error);
+      axiosHelper.errorHandling(error, navigation);
     }
   }
 
@@ -44,14 +45,18 @@ export default function Details({ route }) {
         {
           text: "Enviar",
           onPress: async () => {
-            ToastAndroid.show(
-              "Carona cancelada com sucesso!",
-              ToastAndroid.LONG
-            );
+            try {
+              ToastAndroid.show(
+                "Carona cancelada com sucesso!",
+                ToastAndroid.LONG
+              );
+              const axiosInstance = await axiosHelper.axiosInstance();
+              await axiosInstance.put(`/rides/${rideId}/cancel`);
 
-            await axiosRequest.put(`/rides/${rideId}/cancel`);
-
-            navigation.goBack();
+              navigation.goBack();
+            } catch (error) {
+              axiosHelper.errorHandling(error, navigation);
+            }
           },
         },
       ]
@@ -59,25 +64,32 @@ export default function Details({ route }) {
   }
 
   async function RequestRide() {
-    const { data: ride } = await axiosRequest.get(`/rides/${rideId}`);
+    try {
+      const axiosInstance = await axiosHelper.axiosInstance();
+      const { data: ride } = await axiosInstance.get(`/rides/${rideId}`);
 
-    if (ride) {
-      setMyLocation({
-        title: ride.pickup_address,
-        description: ride.passenger_name,
-        latitude: Number(ride.pickup_latitude),
-        longitude: Number(ride.pickup_longitude),
-        latitudeDelta: 0.002,
-        longitudeDelta: 0.002,
-      });
+      if (ride) {
+        setMyLocation({
+          title: ride.pickup_address,
+          description: ride.passenger_name,
+          latitude: Number(ride.pickup_latitude),
+          longitude: Number(ride.pickup_longitude),
+          latitudeDelta: 0.002,
+          longitudeDelta: 0.002,
+        });
 
-      setRide(ride);
-      setPickupLocation(ride.pickup_address);
-      setDropOffLocation(ride.dropoff_address);
-      setPassengerInfo(`${ride.passenger_name} - Tel: ${ride.passenger_phone}`);
+        setRide(ride);
+        setPickupLocation(ride.pickup_address);
+        setDropOffLocation(ride.dropoff_address);
+        setPassengerInfo(
+          `${ride.passenger_name} - Tel: ${ride.passenger_phone}`
+        );
+      }
+
+      setLoading(false);
+    } catch (error) {
+      axiosHelper.errorHandling(error, navigation);
     }
-
-    setLoading(false);
   }
 
   useEffect(() => {

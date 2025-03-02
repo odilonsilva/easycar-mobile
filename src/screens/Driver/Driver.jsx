@@ -2,18 +2,10 @@ import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { icons } from "../../constants/images";
 import { style } from "./driver.style";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
-import { axiosRequest, errorHandling } from "../../constants/Requests";
 import { useCallback, useContext, useState } from "react";
 import { UserContext } from "../../contexts/UserContext";
-import {
-  CarFrontIcon,
-  FolderIcon,
-  HandshakeIcon,
-  LandPlotIcon,
-  MapIcon,
-  PersonStandingIcon,
-} from "lucide-react-native";
-
+import { LandPlotIcon } from "lucide-react-native";
+import axiosHelper from "../../constants/Requests";
 export default function Driver() {
   const navigation = useNavigation();
   const { user } = useContext(UserContext);
@@ -21,10 +13,13 @@ export default function Driver() {
 
   async function getRides() {
     try {
-      const { data } = await axiosRequest.get(`/rides/drivers/${user.user_id}`);
+      const axiosInstance = await axiosHelper.axiosInstance();
+      const { data } = await axiosInstance.get(
+        `/rides/drivers/${user.user_id}`
+      );
       setRides(data);
     } catch (error) {
-      errorHandling(error);
+      axiosHelper.errorHandling(error, navigation);
     }
   }
 

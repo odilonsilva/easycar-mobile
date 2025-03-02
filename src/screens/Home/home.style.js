@@ -28,11 +28,7 @@ export const style = StyleSheet.create({
   },
   userContainer: {
     width: "100%",
-    // backgroundColor: "#000",
     padding: 10,
-    // flexDirection: "row",
-    // alignItems: "center",
-    // justifyContent: "flex-end",
   },
   buttonUser: {
     flexDirection: "row",

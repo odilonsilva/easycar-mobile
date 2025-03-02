@@ -11,7 +11,7 @@ import { style } from "./regtister.style";
 import { icons } from "../../constants/images";
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
-import { axiosRequest, errorHandling } from "../../constants/Requests";
+import axiosHelper from "../../constants/Requests";
 
 export default function Register() {
   const navigation = useNavigation();
@@ -32,12 +32,13 @@ export default function Register() {
         }
       }
 
-      await axiosRequest.post("/users", { ...user });
+      const axiosInstance = await axiosHelper.axiosInstanceLogin();
+      await axiosInstance.post("/users", { ...user });
 
       ToastAndroid.show("Conta criada com sucesso.", ToastAndroid.LONG);
       navigation.navigate("Home");
     } catch (error) {
-      errorHandling(error);
+      axiosHelper.errorHandling(error);
     }
   }
 

@@ -11,7 +11,7 @@ import { icons } from "../../constants/images";
 import { useNavigation } from "@react-navigation/native";
 import { useContext, useState } from "react";
 import { UserContext } from "../../contexts/UserContext";
-import { axiosRequest, errorHandling } from "../../constants/Requests";
+import axiosHelper from "../../constants/Requests";
 
 export default function Login() {
   const navigation = useNavigation();
@@ -22,10 +22,11 @@ export default function Login() {
   async function handleLogin() {
     try {
       if (email.trim() === "" || password.trim() === "") {
-        errorHandling("Preencha todos os campos");
+        alert("Preencha todos os campos");
         return;
       }
-      const { data } = await axiosRequest.post("/users/login", {
+      const axiosInstance = await axiosHelper.axiosInstanceLogin();
+      const { data } = await axiosInstance.post("/users/login", {
         email,
         password,
       });
@@ -33,7 +34,7 @@ export default function Login() {
       saveUser(data);
       navigation.navigate("Home");
     } catch (error) {
-      errorHandling(error);
+      axiosHelper.errorHandling(error);
     }
   }
 
