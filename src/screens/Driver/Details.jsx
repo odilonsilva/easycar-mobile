@@ -1,11 +1,12 @@
 import { Alert, Text, TextInput, ToastAndroid, View } from "react-native";
 import { style } from "./details.style";
 import MyButton from "../../components/MyButton";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import MapView, { Marker } from "react-native-maps";
 import Loader from "../../components/Loader";
 import { useNavigation } from "@react-navigation/native";
 import axiosHelper from "../../constants/Requests";
+import { LanguageContext } from "../../contexts/LanguageContext";
 
 export default function Details({ route }) {
   const driverId = route.params.driverId;
@@ -17,6 +18,7 @@ export default function Details({ route }) {
   const [dropOffLocation, setDropOffLocation] = useState(null);
   const [myLocation, setMyLocation] = useState(null);
   const navigation = useNavigation();
+  const { textLocalized } = useContext(LanguageContext);
 
   async function AcceptAction() {
     try {
@@ -25,7 +27,10 @@ export default function Details({ route }) {
         driver_id: driverId,
       });
 
-      ToastAndroid.show("Corrida aceita", ToastAndroid.LONG);
+      ToastAndroid.show(
+        textLocalized("details.acceptMessage"),
+        ToastAndroid.LONG
+      );
       navigation.goBack();
     } catch (error) {
       axiosHelper.errorHandling(error, navigation);
@@ -34,20 +39,20 @@ export default function Details({ route }) {
 
   function CancelAction() {
     Alert.alert(
-      "Cancelar Carona",
-      "Cancelando essa corrida, o Passageiro voltará para fila de viagens disponiveis.",
+      textLocalized("details.cancelMessageTitle"),
+      textLocalized("details.cancelMessage"),
       [
         {
-          text: "Cancelar",
+          text: textLocalized("details.cancel"),
           onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
         },
         {
-          text: "Enviar",
+          text: textLocalized("details.send"),
           onPress: async () => {
             try {
               ToastAndroid.show(
-                "Carona cancelada com sucesso!",
+                textLocalized("details.cancelMessageSuccess"),
                 ToastAndroid.LONG
               );
               const axiosInstance = await axiosHelper.axiosInstance();
@@ -69,6 +74,8 @@ export default function Details({ route }) {
       const { data: ride } = await axiosInstance.get(`/rides/${rideId}`);
 
       if (ride) {
+        if (ride.status === "F") navigation.goBack();
+
         setMyLocation({
           title: ride.pickup_address,
           description: ride.passenger_name,
@@ -82,7 +89,9 @@ export default function Details({ route }) {
         setPickupLocation(ride.pickup_address);
         setDropOffLocation(ride.dropoff_address);
         setPassengerInfo(
-          `${ride.passenger_name} - Tel: ${ride.passenger_phone}`
+          `${ride.passenger_name} - ${textLocalized("details.phone")} ${
+            ride.passenger_phone
+          }`
         );
       }
 
@@ -126,7 +135,7 @@ export default function Details({ route }) {
       <View style={style.formContainer}>
         <Text style={style.title}>{passengerInfo}</Text>
         <View>
-          <Text>Origem:</Text>
+          <Text>{textLocalized("details.origin")}</Text>
           <TextInput
             style={[
               style.textInput,
@@ -137,7 +146,7 @@ export default function Details({ route }) {
           />
         </View>
         <View>
-          <Text>Destino:</Text>
+          <Text>{textLocalized("details.destination")}</Text>
           <TextInput
             style={[
               style.textInput,
@@ -149,11 +158,19 @@ export default function Details({ route }) {
         </View>
       </View>
       {ride.status == "P" && (
-        <MyButton text="aceitar" action={AcceptAction} color="default" />
+        <MyButton
+          text={textLocalized("details.accept")}
+          action={AcceptAction}
+          color="default"
+        />
       )}
 
       {ride.status == "A" && (
-        <MyButton text="cancelar" action={CancelAction} color="red" />
+        <MyButton
+          text={textLocalized("details.cancel")}
+          action={CancelAction}
+          color="red"
+        />
       )}
     </View>
   );

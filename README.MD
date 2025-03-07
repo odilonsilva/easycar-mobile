@@ -12,6 +12,7 @@ Easy Car Mobile é uma aplicação de caronas que permite aos usuários solicita
 - **AsyncStorage**: Alternativa ao localStorage para armazenamento local de dados no React Native.
 - **Context API**: Gerenciamento de estado global da aplicação.
 - **Expo**: Plataforma para desenvolvimento, construção e implantação de aplicações React Native.
+- **I18n**: Internacionalização do app suportando os idiomas Inglês e Português.
 - **Google Maps**: Integração com mapas e geolocalização.
 
 ## Imagens

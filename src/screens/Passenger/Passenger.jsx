@@ -6,12 +6,14 @@ import MapView, { Marker } from "react-native-maps";
 import Loader from "../../components/Loader";
 import {
   getCurrentPositionAsync,
+  getLastKnownPositionAsync,
   requestForegroundPermissionsAsync,
   reverseGeocodeAsync,
 } from "expo-location";
 import { useNavigation } from "@react-navigation/native";
 import { UserContext } from "../../contexts/UserContext";
 import axiosHelper from "../../constants/Requests";
+import { LanguageContext } from "../../contexts/LanguageContext";
 
 export default function Passenger() {
   const [ride, setRide] = useState({ status: "" });
@@ -21,18 +23,23 @@ export default function Passenger() {
   const [dropOffLocation, setDropOffLocation] = useState(null);
   const navigation = useNavigation();
   const { user } = useContext(UserContext);
+  const { textLocalized } = useContext(LanguageContext);
 
   async function ConfirmAction() {
     try {
       if (dropOffLocation == null || pickupLocation == null) {
-        Alert.alert("Atenção", "Informe o endereço de origem e destino");
+        Alert.alert(
+          textLocalized("passenger.confirmMessageTitle"),
+          textLocalized("passenger.confirmMessage")
+        );
         return;
       }
 
       ToastAndroid.show(
-        "Sua solicição de carona foi enviada! Aguarde um motorista",
+        textLocalized("passenger.confirmMessageSuccess"),
         ToastAndroid.LONG
       );
+
       const axiosInstance = await axiosHelper.axiosInstance();
       await axiosInstance.post("/rides", {
         passenger_user_id: user.user_id,
@@ -50,19 +57,19 @@ export default function Passenger() {
 
   function CancelAction() {
     Alert.alert(
-      "Cancelar Carona",
-      "Caso você precise de uma nova corrida , basta voltar para fila de caronas.",
+      textLocalized("passenger.cancelMessageTitle"),
+      textLocalized("passenger.cancelMessage"),
       [
         {
-          text: "Cancelar",
+          text: textLocalized("passenger.cancel"),
           onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
         },
         {
-          text: "Enviar",
+          text: textLocalized("passenger.send"),
           onPress: async () => {
             ToastAndroid.show(
-              "Carona cancelada com sucesso!",
+              textLocalized("passenger.cancelMessageSuccess"),
               ToastAndroid.LONG
             );
 
@@ -80,30 +87,34 @@ export default function Passenger() {
   }
 
   function FinishAction() {
-    Alert.alert("Finalizar Carona", "Finalizar essa corrida", [
-      {
-        text: "Cancelar",
-        onPress: () => console.log("Cancel Pressed"),
-        style: "cancel",
-      },
-      {
-        text: "Enviar",
-        onPress: async () => {
-          ToastAndroid.show(
-            "Carona finalizada com sucesso!",
-            ToastAndroid.LONG
-          );
-
-          try {
-            const axiosInstance = await axiosHelper.axiosInstance();
-            await axiosInstance.put(`/rides/${ride.ride_id}/finish`);
-            navigation.goBack();
-          } catch (error) {
-            axiosHelper.errorHandling(error, navigation);
-          }
+    Alert.alert(
+      textLocalized("passenger.finishMessageTitle"),
+      textLocalized("passenger.finishMessage"),
+      [
+        {
+          text: textLocalized("passenger.cancel"),
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
         },
-      },
-    ]);
+        {
+          text: textLocalized("passenger.send"),
+          onPress: async () => {
+            ToastAndroid.show(
+              textLocalized("passenger.finishMessageSuccess"),
+              ToastAndroid.LONG
+            );
+
+            try {
+              const axiosInstance = await axiosHelper.axiosInstance();
+              await axiosInstance.put(`/rides/${ride.ride_id}/finish`);
+              navigation.goBack();
+            } catch (error) {
+              axiosHelper.errorHandling(error, navigation);
+            }
+          },
+        },
+      ]
+    );
   }
 
   async function RequestRide() {
@@ -124,9 +135,13 @@ export default function Passenger() {
   }
 
   async function RequestUserLocation() {
-    const granted = await requestForegroundPermissionsAsync();
+    const { granted } = await requestForegroundPermissionsAsync();
+
     if (granted) {
-      const location = await getCurrentPositionAsync();
+      let location = await getLastKnownPositionAsync();
+      console.log("location", location);
+
+      if (!location) location = await getCurrentPositionAsync();
 
       if (!location) return null;
 
@@ -215,12 +230,12 @@ export default function Passenger() {
 
       <View style={style.formContainer}>
         <Text style={style.title}>
-          {ride.status == "" && "Encontre sua carona"}
-          {ride.status == "P" && "Aguardando uma carona..."}
-          {ride.status == "A" && "Carona confirmada"}
+          {ride.status == "" && textLocalized("passenger.findRide")}
+          {ride.status == "P" && textLocalized("passenger.waitingRide")}
+          {ride.status == "A" && textLocalized("passenger.confirmedRide")}
         </Text>
         <View>
-          <Text>Origem:</Text>
+          <Text>{textLocalized("passenger.origin")}</Text>
           <TextInput
             style={[
               style.textInput,
@@ -232,7 +247,7 @@ export default function Passenger() {
           />
         </View>
         <View>
-          <Text>Destino:</Text>
+          <Text>{textLocalized("passenger.destination")}</Text>
           <TextInput
             style={[
               style.textInput,
@@ -245,7 +260,7 @@ export default function Passenger() {
         </View>
         {ride && ride.status == "A" && (
           <View>
-            <Text>Motorista:</Text>
+            <Text>{textLocalized("passenger.driver")}</Text>
             <TextInput
               style={[style.textInput, style.textDisabled]}
               editable={false}
@@ -255,13 +270,25 @@ export default function Passenger() {
         )}
       </View>
       {ride.status == "" && (
-        <MyButton text="Confirmar" action={ConfirmAction} color="default" />
+        <MyButton
+          text={textLocalized("passenger.confirm")}
+          action={ConfirmAction}
+          color="default"
+        />
       )}
       {ride.status == "A" && (
-        <MyButton text="finalizar" action={FinishAction} color="red" />
+        <MyButton
+          text={textLocalized("passenger.finish")}
+          action={FinishAction}
+          color="red"
+        />
       )}
       {ride.status == "P" && (
-        <MyButton text="Cancelar" action={CancelAction} color="red" />
+        <MyButton
+          text={textLocalized("passenger.cancel")}
+          action={CancelAction}
+          color="red"
+        />
       )}
     </View>
   );

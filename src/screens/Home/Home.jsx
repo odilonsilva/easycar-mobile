@@ -13,20 +13,22 @@ import { View } from "react-native";
 import { UserCircle2Icon } from "lucide-react-native";
 import { UserContext } from "../../contexts/UserContext";
 import { useCallback, useContext } from "react";
+import { LanguageContext } from "../../contexts/LanguageContext";
 
 export default function Home() {
   const navigation = useNavigation();
   const { user, removeUser } = useContext(UserContext);
+  const { textLocalized } = useContext(LanguageContext);
 
   async function logout() {
-    Alert.alert("Sair", "Deslogar do aplicativo?", [
+    Alert.alert(textLocalized("home.exit"), textLocalized("home.exitMessage"), [
       {
-        text: "Cancelar",
+        text: textLocalized("home.cancel"),
         onPress: () => console.log("Cancel Pressed"),
         style: "cancel",
       },
       {
-        text: "Sair",
+        text: textLocalized("home.logOut"),
         onPress: async () => {
           removeUser();
 
@@ -61,8 +63,8 @@ export default function Home() {
           onPress={() => navigation.navigate("Passenger")}
         >
           <Image source={icons.passenger} style={style.buttonImage} />
-          <Text style={style.title}>Passageiro</Text>
-          <Text style={style.text}>Encontre uma carona para você</Text>
+          <Text style={style.title}>{textLocalized("home.passenger")}</Text>
+          <Text style={style.text}>{textLocalized("home.passengerHint")}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -70,8 +72,8 @@ export default function Home() {
           onPress={() => navigation.navigate("Driver")}
         >
           <Image source={icons.driver} style={style.buttonImage} />
-          <Text style={style.title}>Motorista</Text>
-          <Text style={style.text}>Ofereça uma carona em seu carro</Text>
+          <Text style={style.title}>{textLocalized("home.driver")}</Text>
+          <Text style={style.text}>{textLocalized("home.driverHint")}</Text>
         </TouchableOpacity>
       </View>
     </ImageBackground>

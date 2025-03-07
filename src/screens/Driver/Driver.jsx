@@ -6,9 +6,12 @@ import { useCallback, useContext, useState } from "react";
 import { UserContext } from "../../contexts/UserContext";
 import { LandPlotIcon } from "lucide-react-native";
 import axiosHelper from "../../constants/Requests";
+import { LanguageContext } from "../../contexts/LanguageContext";
+
 export default function Driver() {
   const navigation = useNavigation();
   const { user } = useContext(UserContext);
+  const { textLocalized } = useContext(LanguageContext);
   const [rides, setRides] = useState([]);
 
   async function getRides() {
@@ -38,7 +41,7 @@ export default function Driver() {
           style={style.emptyIcon}
         />
         <Text style={style.emptyTitle}>
-          Não existem solicitações de caronas.
+          {textLocalized("driver.emptyMessage")}
         </Text>
       </View>
     );
@@ -64,8 +67,14 @@ export default function Driver() {
             )}
             <Text style={style.title}>{item.passenger_name}</Text>
           </View>
-          <Text style={style.subtitle}>Origem: {item.pickup_address}</Text>
-          <Text style={style.subtitle}>Destino: {item.dropoff_address}</Text>
+          <Text style={style.subtitle}>
+            {" "}
+            {textLocalized("driver.origin")}: {item.pickup_address}
+          </Text>
+          <Text style={style.subtitle}>
+            {" "}
+            {textLocalized("driver.destination")}: {item.dropoff_address}
+          </Text>
         </TouchableOpacity>
       )}
     />

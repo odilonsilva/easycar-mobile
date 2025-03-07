@@ -12,12 +12,14 @@ import { useNavigation } from "@react-navigation/native";
 import { useContext, useState } from "react";
 import { UserContext } from "../../contexts/UserContext";
 import axiosHelper from "../../constants/Requests";
+import { LanguageContext } from "../../contexts/LanguageContext";
 
 export default function Login() {
   const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { saveUser } = useContext(UserContext);
+  const { textLocalized } = useContext(LanguageContext);
 
   async function handleLogin() {
     try {
@@ -44,25 +46,27 @@ export default function Login() {
         <Image source={icons.logo} style={style.logo} />
       </View>
       <View style={style.form}>
-        <Text style={style.label}>E-mail</Text>
+        <Text style={style.label}>{textLocalized("login.email")}</Text>
         <TextInput
           style={style.input}
-          placeholder="Digite seu e-mail"
+          placeholder={textLocalized("login.emailPlaceholder")}
           onChangeText={(text) => setEmail(text)}
         />
 
-        <Text style={style.label}>Senha</Text>
+        <Text style={style.label}>{textLocalized("login.password")}</Text>
         <TextInput
           secureTextEntry={true}
           style={style.input}
-          placeholder="Digite sua senha"
+          placeholder={textLocalized("login.passwordPlaceholder")}
           onChangeText={(text) => setPassword(text)}
         />
 
         <TouchableOpacity style={style.button} onPress={handleLogin}>
-          <Text style={style.buttonText}>Entrar</Text>
+          <Text style={style.buttonText}>{textLocalized("login.signIn")}</Text>
         </TouchableOpacity>
-        <Text onPress={() => navigation.navigate("Register")}>Cadastrar</Text>
+        <Text onPress={() => navigation.navigate("Register")}>
+          {textLocalized("login.signUp")}
+        </Text>
       </View>
     </ImageBackground>
   );
